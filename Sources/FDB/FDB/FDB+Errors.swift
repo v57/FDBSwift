@@ -174,7 +174,7 @@ public extension FDB {
             case 9704: result = .unpackInvalidBoundaries
             case 9705: result = .unpackInvalidString
             default:
-            FDB.logger.error("Unknown errno \(errno)")
+            FDB.debug("Unknown errno \(errno)")
             result = .unknownError
             }
 

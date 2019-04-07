@@ -1,19 +1,18 @@
 import CFDB
 import NIO
-import Logging
 
 public extension FDB {
     class Transaction {
         internal typealias Pointer = OpaquePointer
 
         internal let pointer: Pointer
-        internal let eventLoop: EventLoop?
+//        internal let eventLoop: EventLoop?
         internal private(set) var retries: Int = 0
 
         /// Creates a new instance of a previously started FDB transaction
         internal init(_ pointer: Pointer, _ eventLoop: EventLoop? = nil) {
             self.pointer = pointer
-            self.eventLoop = eventLoop
+//            self.eventLoop = eventLoop
 
             let debugInfoSuffix: String
             if let el = eventLoop {
@@ -22,7 +21,7 @@ public extension FDB {
                 debugInfoSuffix = "without event loop"
             }
 
-            self.log("Started transaction \(debugInfoSuffix)")
+            self.debug("Started transaction \(debugInfoSuffix)")
         }
 
         deinit {
@@ -36,18 +35,12 @@ public extension FDB {
 
         internal func incrementRetries() {
             self.retries += 1
-            self.log("Retry #\(self.retries)", level: .info)
+            self.debug("Retry #\(self.retries)")
         }
 
-        /// Logs message to Logger (if `FDB.verbose` is `true`)
-        @inlinable internal func log(_ message: String, level: Logger.Level = .debug) {
-            var logger = FDB.logger
-            logger[metadataKey: "trid"] = "\(ObjectIdentifier(self).hashValue)"
-
-            logger.log(
-                level: level,
-                "[FDB.Transaction] \(message)"
-            )
+        /// Prints verbose debug message to stdout (if `FDB.verbose` is `true`)
+        internal func debug(_ message: String) {
+            FDB.debug("[Transaction] [\(ObjectIdentifier(self).hashValue)] \(message)")
         }
 
         /// Begins a new FDB transactionon on given FDB database pointer and optional event loop
@@ -62,14 +55,14 @@ public extension FDB {
         /// Cancels the transaction. All pending or future uses of the transaction will return
         /// a `transaction_cancelled` error. The transaction can be used again after it is `reset`.
         func cancel() {
-            self.log("Cancelling transaction")
+            self.debug("Cancelling transaction")
             fdb_transaction_cancel(self.pointer)
         }
 
         /// Reset transaction to its initial state.
         /// This is similar to creating a new transaction after destroying previous one.
         func reset() {
-            self.log("Resetting transaction")
+            self.debug("Resetting transaction")
             fdb_transaction_reset(self.pointer)
         }
 
