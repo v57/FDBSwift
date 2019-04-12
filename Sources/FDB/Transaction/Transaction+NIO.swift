@@ -47,11 +47,11 @@ public extension AsyncTransaction {
     /// - returns: EventLoopFuture with future Void value
     func commit() -> EventLoopFuture<Void> {
         let promise: EventLoopPromise<Void> = eventLoop.makePromise()
-
+        
         let future: FDB.Future = transaction.commit()
-        future.whenVoidReady(promise.succeed)
+        future.whenVoidReady { promise.succeed(()) }
         future.whenError(promise.fail)
-
+        
         return promise.futureResult.map { _ in () }
     }
 
